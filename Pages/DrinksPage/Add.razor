@@ -1,0 +1,97 @@
+﻿@page "/drinks/add"
+
+@using DrinksWebApp.Models
+@using DrinksWebApp.Services
+@using System.Security.Claims;
+@using Microsoft.AspNetCore.Identity;
+
+@inject AlcoholIngredientService alcoholIngredientService
+@inject DrinkService drinkService
+@inject IngredientService ingredientService
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider authStateProvider
+@inject UserService userService
+
+<h1>Add drink</h1>
+<hr />
+<EditForm Model="@drink">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label for="Name" class="form-label">Name</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="drink.Name" />
+        </div>
+
+        <label for="Description" class="form-label">Description</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="drink.Description" />
+        </div>
+
+        <label for="Recipe" class="form-label">Recipe</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="drink.Recipe" />
+        </div>
+
+        <label for="Ingredients" class="form-label">Ingredients</label>
+        <div class="col-md-4">
+            <select @bind="selectedIngredients" multiple> 
+                @foreach (var ingredient in @ingredients)
+                {
+                    <option value="@ingredient.Id"> @ingredient.Name </option>
+                }
+            </select>
+        </div>
+
+        <label for="AlcoholIngredients" class="form-label">Alcohol Ingredients</label>
+        <div class="col-md-4">
+            <select @bind="selectedAlcoholIngredients" multiple>
+                @foreach (var ingredient in @alcoholIngredients)
+                {
+                    <option value="@ingredient.Id"> @ingredient.Name </option>
+                }
+            </select>
+        </div>
+
+    </div>
+    <div class="form-group">
+        <button class="btn btn-primary" @onclick="SaveDrink">Add</button>
+        <button class="btn btn-light" @onclick="Cancel">Cancel</button>
+    </div>
+</EditForm>
+@code {
+
+    protected Drink drink = new();
+    protected Ingredient[] ingredients;
+    protected string[] selectedIngredients = new string[] { };
+    protected AlcoholIngredient[] alcoholIngredients;
+    protected string[] selectedAlcoholIngredients = new string[] { };
+
+    protected async Task SaveDrink()
+    {
+        var state = await authStateProvider.GetAuthenticationStateAsync();
+        var username = state.User.Identity.Name;
+
+        var user = await userService.GetUserByName(username);
+
+        drink.UserId = user.Id;
+        var ingreds = selectedIngredients.Select(si => int.Parse(si)).ToArray();
+        var alcIngreds = selectedAlcoholIngredients.Select(si => int.Parse(si)).ToArray();
+        await drinkService.Add(drink, ingreds, alcIngreds);
+        navManager.NavigateTo("/");
+    }
+
+    protected async Task Cancel()
+    {
+        navManager.NavigateTo("/");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ingredients = await ingredientService.GetAll();
+        alcoholIngredients = await alcoholIngredientService.GetAll();
+        //var username = GetAuthenticationStateAsync().
+
+        //var user = userService.GetUserByName
+        
+    }
+}

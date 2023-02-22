@@ -1,0 +1,111 @@
+﻿@page "/drinks/details/{drinkId}"
+@using DrinksWebApp.Models;
+@using DrinksWebApp.Services
+@using Microsoft.AspNetCore.Identity;
+@inject DrinkService drinkService
+@inject OpinionService opinionService
+
+<h3>Details</h3>
+
+<table>
+	<colgroup>
+		<col width="200px" />	
+		<col width="800px" />	
+	</colgroup>
+	<tbody>
+		<tr>
+			<td> 
+				<span> Name </span> 
+			</td> 
+			<td>
+				<span> @drink.Name</span>
+			</td>
+		</tr>
+		<tr>
+			<td> 
+				<span> Description </span> 
+			</td> 
+			<td>
+				<span> @drink.Description</span>
+			</td>
+		</tr>
+		<tr>
+			<td> 
+				<span> Recipe </span> 
+			</td> 
+			<td>
+				<span> @drink.Recipe</span>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<span> Ingredients </span>
+			</td>
+			<td>
+				<span> @ingredients</span>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<span> Alcohol Ingredients </span>
+			</td>
+			<td>
+				<span> @alcoholIngredients</span>
+			</td>
+		</tr>
+	</tbody>
+
+</table>
+
+<NavLink class="nav-link" href=@href>
+	<span class="oi oi-plus" aria-hidden="true"></span> Dodaj opinię
+</NavLink>
+
+@if (drink.Opinions.Count() != 0)
+{
+	var avg = drink.Opinions.Select(o => o.Rate).Sum() / drink.Opinions.Count();
+	<span>Średnia ocen: @avg / 10</span>
+
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Ocena</th>
+				<th>Dodano przez</th>
+				<th>Opinia</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var opinion in drink.Opinions)
+			{
+				var href = "drinks/details/" + drink.Id.ToString();
+				<tr>
+					<td>@opinion.Rate / 10</td>
+					<td>@opinion.UserName</td>
+					<td>@opinion.Content</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+
+@code {
+	[Parameter]
+	public string drinkId { get; set; }
+
+	public Drink drink;
+
+	protected string ingredients;
+
+	protected string alcoholIngredients;
+
+	protected string href;
+
+	protected override async Task OnInitializedAsync()
+	{
+		drink = await drinkService.GetDetails(int.Parse(drinkId));
+		ingredients = string.Join(", ", drink.IngredientDrinks.Select(id => id.Ingredient.Name).ToList());
+		alcoholIngredients = string.Join(", ", drink.AlcoholIngredientDrinks.Select(id => id.AlcoholIngredient.Name).ToList());
+		href = "/add-opinion/" + drink.Id.ToString();
+	}
+}

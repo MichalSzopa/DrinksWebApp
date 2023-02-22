@@ -1,0 +1,46 @@
+﻿@page "/ingredients"
+
+<PageTitle>Ingredients</PageTitle>
+
+@using DrinksWebApp.Models
+@using DrinksWebApp.Data
+@using DrinksWebApp.Services
+@inject IngredientService ingredientService
+
+<h1>Ingredients</h1>
+
+<NavLink class="nav-link" href="ingredients/add">
+                            <span class="oi oi-plus" aria-hidden="true"></span> Dodaj
+</NavLink>
+
+@if (ingredients == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ingredient in ingredients)
+            {
+                <tr>
+                    <td>@ingredient.Name</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private Ingredient[]? ingredients;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ingredients = await ingredientService.GetAll();
+    }
+}

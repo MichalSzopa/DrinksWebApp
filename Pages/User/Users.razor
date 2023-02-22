@@ -1,0 +1,64 @@
+﻿@page "/users"
+
+<PageTitle>Users</PageTitle>
+
+@using DrinksWebApp.Models
+@using DrinksWebApp.Data
+@using DrinksWebApp.Services
+@using Microsoft.AspNetCore.Identity;
+@using static DrinksWebApp.Shared.Enums;
+
+@inject UserService userService
+
+<h1>Users</h1>
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <NavLink class="nav-link" href="users/add">
+            <span class="oi oi-plus" aria-hidden="true"></span> Dodaj
+        </NavLink>
+    </Authorized>
+</AuthorizeView>
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in users)
+        {
+            var href = "users/edit/" + user.Id.ToString();
+            <tr>
+                <td>@user.UserName</td>
+                <td>@user.Email</td>
+                <td>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="@href">
+                            <span class="oi oi-plus" aria-hidden="true"></span> Edit
+                        </NavLink>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@code {
+    private ICollection<IdentityUser> users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await userService.GetUsersAsync();
+    }
+
+
+    private string getUserType(UserType type)
+    {
+        return type == UserType.Admin ? "Admin" : type == UserType.Moderator ? "Moderator" : type == UserType.User ? "User" : "InvalidRole";
+    }
+}

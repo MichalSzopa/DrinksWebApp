@@ -1,0 +1,44 @@
+﻿@page "/alcoholingredients/add"
+
+@using DrinksWebApp.Models
+@using DrinksWebApp.Services
+@inject AlcoholIngredientService alcoholIngredientService
+@inject NavigationManager navManager
+
+<h1>@Title Alcohol Ingredients</h1>
+<hr />
+<EditForm Model="@alcoholIngredient">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label for="Name" class="form-label">Name</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="alcoholIngredient.Name" />
+        </div>
+        <label for="AlcoholVolume" class="form-label">Alcohol Volume</label>
+        <div class="col-md-4">
+            <InputNumber class="form-control" @bind-Value="alcoholIngredient.AlcoholVolume" />
+        </div>
+
+    </div>
+    <div class="form-group">
+        <button class="btn btn-primary" @onclick="SaveIngredient">Add</button>
+        <button class="btn btn-light" @onclick="Cancel">Cancel</button>
+    </div>
+</EditForm>
+@code {
+    [Parameter]
+    public int userId { get; set; }
+    protected string Title = "Add";
+    protected AlcoholIngredient alcoholIngredient = new();
+
+    protected async Task SaveIngredient()
+    {
+        await alcoholIngredientService.Add(alcoholIngredient);
+        navManager.NavigateTo("/alcoholingredients");
+    }
+
+    protected async Task Cancel()
+    {
+        navManager.NavigateTo("/alcoholingredients");
+    }
+}

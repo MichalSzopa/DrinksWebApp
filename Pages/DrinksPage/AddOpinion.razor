@@ -1,0 +1,78 @@
+﻿@page "/add-opinion/{drinkId}"
+
+@using DrinksWebApp.Models
+@using DrinksWebApp.Services
+@using Microsoft.AspNetCore.Mvc;
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Buttons
+@using System.Security.Claims;
+
+@inject OpinionService opinionService
+@inject DrinkService drinkService
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider authStateProvider
+@inject UserService userService
+
+<h1>Dodaj opinię do drinka @DrinkName</h1>
+<hr />
+
+<h2>Oceń drinka w skali 1-10</h2>
+<div class="d-flex" style="display: inline-flex; flex-direction: row;">
+@for(var i=1; i<=10; i++)
+{
+        <div class="d-flex" style="display: inline-flex; flex-direction: column;">
+            <span> @i.ToString()</span>
+			<SfRadioButton Name="options" Value=@i.ToString() @bind-Checked="rate"></SfRadioButton>
+        </div>
+    
+}
+</div>
+<EditForm Model="@opinion" OnValidSubmit="SaveOpinion">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label for="Content" class="form-label">Content</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="opinion.Content" />
+        </div>
+    </div>
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Add</button>
+        <button class="btn btn-light" @onclick="Cancel">Cancel</button>
+    </div>
+</EditForm>
+@code {
+    [Parameter]
+    public string drinkId{ get; set; }
+
+    protected string DrinkName;
+
+    public string rate = "1";
+
+    protected Opinion opinion = new();
+
+    protected Drink drink;
+
+    protected override async Task OnInitializedAsync()
+    {
+        drink = await drinkService.GetDetails(int.Parse(drinkId));
+        opinion.DrinkId = drink.Id;
+    }
+
+    protected async Task SaveOpinion()
+    {
+        var state = await authStateProvider.GetAuthenticationStateAsync();
+        opinion.UserName = state.User.Identity.Name;
+        var user = await userService.GetUserByName(opinion.UserName);
+
+        opinion.Rate = int.Parse(rate);
+        opinion.CreateDate = DateTime.Now;
+        opinion.UserId = user.Id;
+        await opinionService.Add(opinion);
+        navManager.NavigateTo("/drinks/details/" + drinkId.ToString());
+    }
+
+    protected async Task Cancel()
+    {
+        navManager.NavigateTo("/drinks/details/" + drinkId.ToString());
+    }
+}
